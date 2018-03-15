@@ -44,6 +44,25 @@ def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if g.user:
+        return redirect(url_for('timeline'))
+    error=None
+    if request.method == 'POST':
+        user = query_db('''select * from user where \
+            username = ?''', [request.form['username']], one=True)
+        if user is None:
+            error='Invalid username'
+        elif not check_password_hash(user['pw_hash'], \
+                                     request.form['password']):
+            error='Invalid password'
+        else:
+            flash('You were logged in')
+            session['user_id'] = user['user_id']
+            return redirect(url_for('timeline'))
+    return render_template('login.html', error=error)
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if g.user:
@@ -70,6 +89,7 @@ def register():
             flash('You were successfully registered and can login now')
             return redirect(url_for('login'))
     return render_template('register.html', error=error)
+
 if __name__ == '__main__':
     init_db()
     app.run()

@@ -16,7 +16,7 @@ SECRET_KEY = 'development key'
 def connect_db():
     return sqlite3.connect(app.config['DATABASE'])
 
-def query_db():
+def query_db(query, args=(), one=False):
     cur = g.db.execute(query, args)
     rv = [dict((cur.description[idx][0], value) \
                 for idx, value in enumerate(row)) \

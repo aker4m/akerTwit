@@ -143,6 +143,44 @@ def unfollow_user(username):
     flash('You are no longer following "%s"' % username)
     return redirect(url_for('user_timeline', username=username))
 
+@app.route('/public')
+def public_timeline():
+    return render_template('timeline.html', messages=query_db('''
+        select message.*, user.* from message, user
+        where message.author_id = user.user_id
+        order by message.pub_date desc limit ?''', [PER_PAGE]))
+
+@app.route('/')
+def timeline():
+    if not g.user:
+        return redirect(url_for('public_timeline'))
+    return render_template('timeline.html', messages=query_db('''
+        select message.*, user.* from message, user 
+        where message.author_id = user.user_id and ( 
+            user.user_id = ? or
+            user.user_id in (select whom_id from follower 
+                                    where who_id = ?))
+        order by message.pub_date desc limit ? ''',
+        [session['user_id'], session['user_id'], PER_PAGE]))
+
+@app.route('/<username>')
+def user_timeline(username):
+    profile_user = query_db('select * from user where username = ?', [username], one=True)
+    if profile_user is None:
+        abort(404)
+    followed = False
+    if g.user:
+        followed = query_db('''select 1 from follower where
+            follower.who_id = ? and follower.whom_id = ?''',
+            [session['user_id'], profile_user['user_id']],
+            one=True) is not None
+    return render_template('timeline.html', messages=query_db('''
+        select message.*, user.* from message, user where
+        user.user_id = message.author_id and user.user_id = ?
+        order by message.pub_date desc limit ?''',
+        [profile_user['user_id'], PER_PAGE]), followed=followed,
+        profile_user=profile_user)
+
 app.jinja_env.filters['gravatar'] = gravatar_url
 
 if __name__ == '__main__':

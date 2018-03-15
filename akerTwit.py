@@ -1,6 +1,8 @@
-from flask import Flask
+from flask import Flask, request, session, url_for, redirect, \
+    render_template, abort, g, flash
 from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
+from werkzeug.security import check_password_hash, generate_password_hash
 
 # configuration
 DATABASE = 'twit.db'
@@ -42,6 +44,32 @@ def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if g.user:
+        return redirect(url_for('timeline'))
+    error = None
+    if request.method == 'POST':
+        if not request.form['username']:
+            error='You have to enter a username'
+        elif not request.form['email'] or \
+            '@' not in request.form['email']:
+            error='You have to enter a valid email adress'
+        elif not request.form['password']:
+            error='You have to enter a password'
+        elif request.form['password'] != request.form['password2']:
+            error='The two passwords do not match'
+        elif get_user_id(request.form['username']) is not None:
+            error='The username is already taken'
+        else:
+            g.db.execute('''insert into user (
+                username, email, pw_hash) values (?,?,?)''',
+                [request.form['username'], request.form['email'],
+                generate_password_hash(request.form['password'])])
+            g.db.commit()
+            flash('You were successfully registered and can login now')
+            return redirect(url_for('login'))
+    return render_template('register.html', error=error)
 if __name__ == '__main__':
     init_db()
     app.run()

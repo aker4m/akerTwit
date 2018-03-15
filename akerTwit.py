@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import time
 from hashlib import md5
 from datetime import datetime
+from pytz import timezone
 
 # configuration
 DATABASE = 'twit.db'
@@ -118,7 +119,8 @@ def register():
     return render_template('register.html', error=error)
 
 def format_datetime(timestamp):
-    return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d @ %H:%M')
+    tz = timezone('Asia/Seoul')
+    return datetime.fromtimestamp(timestamp, tz).strftime('%Y-%m-%d @ %H:%M')
 
 def gravatar_url(email, size=80):
     return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \

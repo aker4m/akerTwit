@@ -3,7 +3,7 @@ from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
 
 # configuration
-DATABASE = 'akerTwit.db'
+DATABASE = 'twit.db'
 PER_PAGE= 30
 DEBUG = True
 SECRET_KEY = 'development key'

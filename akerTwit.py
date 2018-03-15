@@ -3,6 +3,7 @@ from flask import Flask, request, session, url_for, redirect, \
 from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
 from werkzeug.security import check_password_hash, generate_password_hash
+import time
 
 # configuration
 DATABASE = 'twit.db'
@@ -44,13 +45,27 @@ def teardown_request(exception):
     if hasattr(g, 'db'):
         g.db.close()
 
+@app.route('/add_message', methods=['GET', 'POST'])
+def add_message():
+    if 'user_id' not in session:
+        abort(401)
+    if request.form['text']:
+        g.db.execute('''insert into 
+            message (author_id, text, pub_date)
+            values (?,?,?)''', (session['user_id'],
+                                request.form['text'],
+                                int(time.time()))) 
+        g.db.commit()
+        flash('Your message was recored')
+    return redirect(url_for('timeline'))
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if g.user:
         return redirect(url_for('timeline'))
     error=None
     if request.method == 'POST':
-        user = query_db('''select * from user where \
+        user = query_db('''select * from user where 
             username = ?''', [request.form['username']], one=True)
         if user is None:
             error='Invalid username'

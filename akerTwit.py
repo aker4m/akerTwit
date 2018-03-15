@@ -29,6 +29,10 @@ def init_db():
             db.cursor().executescript(f.read())
         db.commit()
 
+def get_user_id(username):
+    rv = g.db.execute('select user_id from user where username = ?', [username]).fetchone()
+    return rv[0] if rv else None
+
 # create my application
 app  = Flask(__name__)
 app.config.from_object(__name__)

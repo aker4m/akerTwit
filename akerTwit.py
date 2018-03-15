@@ -63,6 +63,12 @@ def login():
             return redirect(url_for('timeline'))
     return render_template('login.html', error=error)
 
+@app.route('/logout')
+def logout():
+    flash('You were logged out')
+    session.pop('user_id', None)
+    return redirect(url_for('public_timeline'))
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if g.user:

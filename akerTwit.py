@@ -4,6 +4,8 @@ from sqlite3 import dbapi2 as sqlite3
 from contextlib import closing
 from werkzeug.security import check_password_hash, generate_password_hash
 import time
+from hashlib import md5
+from datetime import datetime
 
 # configuration
 DATABASE = 'twit.db'
@@ -110,6 +112,12 @@ def register():
             flash('You were successfully registered and can login now')
             return redirect(url_for('login'))
     return render_template('register.html', error=error)
+
+def gravatar_url(email, size=80):
+    return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
+        (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
+
+app.jinja_env.filters['gravatar'] = gravatar_url
 
 if __name__ == '__main__':
     init_db()

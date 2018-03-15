@@ -113,6 +113,9 @@ def register():
             return redirect(url_for('login'))
     return render_template('register.html', error=error)
 
+def format_datetime(timestamp):
+    return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d @ %H:%M')
+
 def gravatar_url(email, size=80):
     return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
         (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
@@ -181,6 +184,7 @@ def user_timeline(username):
         [profile_user['user_id'], PER_PAGE]), followed=followed,
         profile_user=profile_user)
 
+app.jinja_env.filters['datetimeformat'] = format_datetime
 app.jinja_env.filters['gravatar'] = gravatar_url
 
 if __name__ == '__main__':

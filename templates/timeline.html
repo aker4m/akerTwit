@@ -2,7 +2,7 @@
 {% block title %}
 {% if request.endpoint == 'public_timeline' %}
     Public Timeline
-{% if request.endpoint == 'user_timeline' %}
+{% elif request.endpoint == 'user_timeline' %}
     {{ profile_user.username }}'s Timeline
 {% else %}
     My Timeline
@@ -34,6 +34,7 @@
             </form>
         </div>
     {% endif %}
+{% endif %}
 
 <ul class=messages>
 {% for message in messages %}
@@ -45,4 +46,5 @@
     <li><em>There's no message so far.</em>
 {% endfor %}
 </ul>
+
 {% endblock %}

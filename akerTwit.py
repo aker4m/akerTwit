@@ -117,6 +117,32 @@ def gravatar_url(email, size=80):
     return 'http://www.gravatar.com/avatar/%s?d=identicon&s=%d' % \
         (md5(email.strip().lower().encode('utf-8')).hexdigest(), size)
 
+@app.route('/<username>/follow')
+def follow_user(username):
+    if not g.user:
+        abort(401)
+    whom_id = get_user_id(username)
+    if whom_id is None:
+        abort(404)
+    g.db.execute('insert into follower (who_id, whom_id) \
+                  values (?,?)', [session['user_id'], whom_id])
+    g.db.commit()
+    flash('You ar now following "%s"' % username)
+    return redirect(url_for('user_timeline', username=username))
+
+@app.route('/<username>/unfollow')
+def unfollow_user(username):
+    if not g.user:
+        abort(401)
+    whom_id = get_user_id(username)
+    if whom_id is None:
+        abort(404)
+    g.db.execute('delete from follower where who_id=? and \
+                  whom_id=?', [session['user_id'], whom_id])
+    g.db.commit()
+    flash('You are no longer following "%s"' % username)
+    return redirect(url_for('user_timeline', username=username))
+
 app.jinja_env.filters['gravatar'] = gravatar_url
 
 if __name__ == '__main__':
